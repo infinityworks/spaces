@@ -100,8 +100,7 @@ defmodule LiveShareSpaces.Authentication do
   def valid_issuer?(arg) do
     case arg do
       {:ok, claims} ->
-        if claims.fields["iss"] ==
-             "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/v2.0" do
+        if String.contains?(claims.field["iss"], "login.microsoftonline.com") do
           {:ok, claims}
         else
           {:error, "Invalid AAD issuer."}
@@ -337,6 +336,7 @@ defmodule LiveShareSpaces.Authentication do
   def is_valid_token?(arg) do
     case arg do
       {:ok, token} ->
+        IO.inspect(token)
         case is_cascade_token?(token) do
           {:ok, is_cascade} ->
             if is_cascade do
@@ -432,8 +432,9 @@ defmodule LiveShareSpaces.Authentication do
           {:error, "Could not get LS profile for email."}
         else
           response = Poison.decode!(response.body)
+          IO.inspect(response)
           name = response["name"]
-          email = response["email"]
+          email = "#{id}@infinityworks.com"
           LiveShareSpaces.ProfileStore.create_profile(id, name, email)
           claims = create_user_payload(id, name, email, "cascade")
           {:ok, claims}
@@ -445,6 +446,7 @@ defmodule LiveShareSpaces.Authentication do
     case arg do
       {:ok, token, id} ->
         profile = LiveShareSpaces.ProfileStore.get_profile(id)
+        IO.inspect(profile)
 
         if profile != nil and String.contains?(profile["email"], "@") do
           name = profile["name"]
